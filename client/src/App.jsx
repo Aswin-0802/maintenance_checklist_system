@@ -12,6 +12,14 @@ const DEMO_ACCOUNTS = [
   { role: "supervisor", name: "Supervisor", email: "supervisor@example.com", password: "Supervisor@123", tint: "violet" },
 ];
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+const API_ORIGIN = API_BASE_URL.replace(/\/api\/?$/, "");
+const SWAGGER_URL = `${API_ORIGIN}/api-docs`;
+const HEALTH_URL = `${API_BASE_URL.replace(/\/$/, "")}/health`;
+const API_HOST = (() => {
+  try { return new URL(API_ORIGIN).host; } catch { return API_ORIGIN; }
+})();
+
 const FAQS = [
   {
     q: "What happens if staff misses the shift window?",
@@ -376,7 +384,9 @@ function HomePage() {
               <span className="hv-brand-mark">MCS</span>
               <span className="hv-brand-name">Maintenance Checklist System</span>
             </div>
-            <p className="hv-footer-tag">Shift checklists, verified.</p>
+            <p className="hv-footer-tag">Built by Aswin Mohan</p>
+            <a href="mailto:aswinmohan212002@gmail.com">aswinmohan212002@gmail.com</a>
+            <a href="https://github.com/aswin-0802" target="_blank" rel="noreferrer">github.com/aswin-0802</a>
           </div>
           <div>
             <h5>Product</h5>
@@ -386,8 +396,8 @@ function HomePage() {
           </div>
           <div>
             <h5>Resources</h5>
-            <a href="http://localhost:5000/api-docs" target="_blank" rel="noreferrer">API docs (Swagger)</a>
-            <a href="http://localhost:5000/api/health" target="_blank" rel="noreferrer">Health check</a>
+            <a href={SWAGGER_URL} target="_blank" rel="noreferrer">API docs (Swagger)</a>
+            <a href={HEALTH_URL} target="_blank" rel="noreferrer">Health check</a>
             <a href="#faq">FAQ</a>
           </div>
           <div>
@@ -399,7 +409,7 @@ function HomePage() {
         </div>
         <div className="hv-footer-bottom container">
           <span>© 2026 Maintenance Checklist System</span>
-          <span className="hv-status"><span className="hv-status-dot" /> API target: localhost:5000</span>
+          <span className="hv-status"><span className="hv-status-dot" /> API target: {API_HOST}</span>
         </div>
       </footer>
     </main>
