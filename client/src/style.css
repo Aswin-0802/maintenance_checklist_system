@@ -1039,9 +1039,11 @@ label { display: grid; gap: 0.35rem; font-size: 0.92rem; }
   border-radius: 0.45rem;
   cursor: pointer;
   font-size: 0.95rem;
+  color: #64748b;
   display: inline-grid; place-items: center;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
+.dash-icon-btn.danger { color: #ef4444; }
 .dash-icon-btn:hover { background: var(--d-indigo-50); border-color: var(--d-indigo-100); color: var(--d-indigo); }
 .dash-icon-btn.danger:hover { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
 
