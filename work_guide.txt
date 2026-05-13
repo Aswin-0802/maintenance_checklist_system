@@ -1,55 +1,68 @@
 SETUP & TESTING GUIDE
 =====================
 
-Prerequisites
--------------
-1. XAMPP
-   - Start Apache (optional if you only use the API)
-   - Start MySQL
+Project: Maintenance Checklist & Shift Verification System
+Stack:   React + Vite (frontend) | Node.js + Express (backend) | PostgreSQL + Prisma
 
-2. Node.js
-   - Install Node.js on your machine
-   - Same major version as the project expects is recommended
 
-3. Database
-   - Create an empty MySQL database named:
-     maintenance_checklist
+LIVE LINKS
+----------
+- Frontend:  https://maintenance-checklist-system.vercel.app
+- Backend:   https://maintenance-checklist-api.onrender.com/api
+- Swagger:   https://maintenance-checklist-api.onrender.com/api-docs
 
-   - Or use the database name configured in DATABASE_URL
+Note: backend is on Render free tier — first request after ~15 min idle
+takes ~30 seconds to wake up. Subsequent requests are fast.
 
 
 ==================================================
-PART A — BACKEND SETUP
+PREREQUISITES
 ==================================================
 
-1. Open terminal and navigate to:
+1. Node.js (v18 or newer)
+   - https://nodejs.org/
 
-   c:\xampp\htdocs\task\server
+2. PostgreSQL database — pick ONE of:
+   a) Use the Render-hosted Postgres (easiest, no install)
+      - Copy the "External Database URL" from your Render Postgres dashboard
+      - Local code reads/writes the same DB as the live site
+   b) Install PostgreSQL locally
+      - https://www.postgresql.org/download/windows/
+      - Create an empty DB: CREATE DATABASE maintenance_checklist;
 
-2. Copy environment file:
+3. Git
+   - To clone the repo
 
-   .env.example  →  .env
 
-3. Edit the .env file
+==================================================
+PART A - BACKEND SETUP
+==================================================
 
-   Set DATABASE_URL using your MySQL credentials.
+1. Open a terminal and navigate to:
 
-   Example for XAMPP with empty root password:
+   c:\xampp\htdocs\maintenance_checklist_system\server
 
-   mysql://root:@localhost:3306/maintenance_checklist
+2. Create the .env file:
 
-   Notes:
-   - Update username/password if needed
-   - The sample .env.example may contain:
-       root:password
-     Replace it with your actual credentials.
+   Git Bash / PowerShell:  cp .env.example .env
+   Windows cmd:            copy .env.example .env
+
+3. Edit the .env file. Set DATABASE_URL to your Postgres connection string.
+
+   Option a - Use Render Postgres (no local install needed):
+       DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DBNAME"
+       (paste the External URL from the Render Postgres dashboard)
+
+   Option b - Use local Postgres:
+       DATABASE_URL="postgresql://postgres:YOUR_PASSWORD@localhost:5432/maintenance_checklist"
+
+   Other defaults in .env are fine for local dev.
 
 4. Keep backend port:
 
    PORT=5000
 
-   Change only if necessary.
-   If changed, also update frontend API URL.
+   Change only if necessary. If changed, also update the frontend API URL.
 
 5. Install dependencies:
 
@@ -59,101 +72,88 @@ PART A — BACKEND SETUP
 
    npx prisma generate
 
-7. Run database migrations:
+7. Apply migrations to the database:
 
-   npx prisma migrate dev
+   npx prisma migrate deploy
 
-   Example:
-
-   npx prisma migrate dev --name init
-
-8. Seed demo data:
+8. Seed demo users (admin / staff / supervisor):
 
    npm run seed
 
-   This creates:
-   - Demo users
-   - Sample data
+9. Seed demo data (stations, shifts, templates, sample submissions):
 
-9. Start backend server:
+   node prisma/seedDemo.js
 
-   npm run dev
+   This creates assignments and submissions dated for TODAY so the
+   Staff dashboard always has an active shift. Safe to re-run.
 
-10. Backend should run at:
+10. Start backend server:
 
-   http://localhost:5000
+    npm run dev
+
+11. Backend runs at:
+
+    http://localhost:5000
 
 
 --------------------------------------------------
 Quick API Checks
 --------------------------------------------------
 
-1. Health Check
-
-   Open:
+1. Health check:
    http://localhost:5000/api/health
 
-   Expected:
-   OK response
-
-2. Swagger API Docs
-
-   Open:
+2. Swagger docs:
    http://localhost:5000/api-docs
 
-3. Test Login API
-
-   Endpoint:
-   POST /auth/login
-
-   Example request body:
-
+3. Test login:
+   POST /api/auth/login
    {
      "email": "admin@example.com",
      "password": "Admin@123"
    }
 
-4. Copy JWT token from response
+4. Copy the JWT token from the response.
 
-5. Use the token in Swagger Authorize button:
-
+5. In Swagger, click "Authorize" and paste:
    Bearer <token>
 
 
 ==================================================
-PART B — FRONTEND SETUP
+PART B - FRONTEND SETUP
 ==================================================
 
 1. Open a new terminal and navigate to:
 
-   c:\xampp\htdocs\task\client
+   c:\xampp\htdocs\maintenance_checklist_system\client
 
-2. Copy environment file:
+2. Create the .env file:
 
-   .env.example  →  .env
+   cp .env.example .env       (Git Bash / PowerShell)
+   copy .env.example .env     (cmd)
 
-3. Verify API base URL inside .env:
+3. Verify the API base URL in .env:
 
    VITE_API_BASE_URL=http://localhost:5000/api
 
-4. If backend uses another port,
-   update the URL accordingly.
+   To point the frontend at the live backend instead:
+       VITE_API_BASE_URL=https://maintenance-checklist-api.onrender.com/api
 
-5. Install dependencies:
+4. Install dependencies:
 
    npm install
 
-6. Start frontend:
+5. Start the frontend:
 
    npm run dev
 
-7. Open application in browser:
+6. Open in browser:
 
    http://localhost:5173
 
 
 ==================================================
-PART C — TEST BY ROLE (UI TESTING)
+PART C - TEST BY ROLE (UI TESTING)
 ==================================================
 
 Seeded Accounts
@@ -182,8 +182,7 @@ Admin Testing
    - Users
    - Shifts
    - Templates
-
-3. Open reports if available
+3. Open reports
 
 Confirms:
 - Admin APIs
@@ -198,17 +197,12 @@ Staff Testing
 1. Log in as Staff
 2. Open today's shifts
 3. Open a checklist for a shift
-4. Mark checklist items
-   - Including mandatory items
+4. Mark checklist items (including mandatory items)
 5. Submit checklist
 
-Confirms:
-- Staff workflow
-- Validation rules
-
 Expected validation:
-- Mandatory incomplete items should block submit
-- Expired shifts should block submit
+- Mandatory incomplete items block submit
+- Expired shifts block submit
 
 
 --------------------------------------------------
@@ -221,43 +215,48 @@ Supervisor Testing
 4. Add rejection comments if needed
 5. Check submission history
 
-Confirms:
-- Supervisor workflow
-- Approval validation rules
-
 Expected validation:
 - Incomplete mandatory items block approval
 
 
 ==================================================
-PART D — OPTIONAL API-ONLY TESTING
+PART D - OPTIONAL API-ONLY TESTING
 ==================================================
 
 1. Open Swagger:
-
    http://localhost:5000/api-docs
 
-2. Login and get JWT token
+2. Login via /api/auth/login and copy the JWT token.
 
-3. Click "Authorize"
+3. Click "Authorize", paste:  Bearer <token>
 
-4. Enter:
-
-   Bearer <token>
-
-5. Test endpoints such as:
-
+4. Test endpoints:
    GET /auth/me
-
-6. Test role-specific APIs:
-
    /admin/...
    /staff/...
    /supervisor/...
 
 Expected:
-- Correct role → success
-- Wrong role → forbidden/authorization errors
+- Correct role -> success
+- Wrong role   -> 403 Forbidden
+
+
+==================================================
+DEPLOYMENT
+==================================================
+
+Full deploy steps are in DEPLOY.md. Short version:
+
+- Frontend:  Vercel, Root Directory = client,
+             env VITE_API_BASE_URL = <render-backend>/api
+- Backend:   Render Web Service, Root Directory = server,
+             Build = "npm install && npm run build"
+             Start = "npm run start"
+- Database:  Render PostgreSQL (free tier)
+
+The "build" script on Render automatically runs
+prisma migrate deploy + seed + seedDemo on every push,
+so the live DB is always migrated and populated.
 
 
 ==================================================
@@ -266,37 +265,58 @@ TROUBLESHOOTING
 
 1. Database Connection Errors
 ------------------------------
-
 Possible causes:
-- MySQL not running
-- Wrong DATABASE_URL
-- Wrong MySQL password
-- Database does not exist
+- DATABASE_URL does not start with postgresql:// or postgres://
+- Wrong username / password
+- Render DB has not finished provisioning yet
+- Local Postgres service not running
+
+Test the URL by running:
+   npx prisma db pull
+
+Schema mismatch error
+("URL must start with postgresql:// or postgres://"):
+- Your .env still has the old mysql:// URL.
+- Replace it with a Postgres connection string.
 
 
-2. CORS / Network Errors
+2. CORS / Network Errors in Browser
 ------------------------------
-
 Possible causes:
-- Backend server not running
-- Wrong VITE_API_BASE_URL
-- CLIENT_URL mismatch in backend .env
+- Backend not running
+- Wrong VITE_API_BASE_URL in client/.env
+- CLIENT_URL on backend doesn't match the frontend origin
 
-Expected frontend URL:
-http://localhost:5173
+For production:
+- On Render, set CLIENT_URL to the Vercel URL (no trailing slash).
+- For multiple origins, comma-separate them.
 
 
 3. Empty Staff Shifts
 ------------------------------
-
 Possible causes:
-- Seed data does not include today's shift
-- Shift dates are outdated
+- seedDemo.js was not run (seed.js only creates users, not shifts)
+- Today's date doesn't match the seeded assignment date
+  (seedDemo.js dates everything for the day it runs)
 
-Possible fixes:
-- Create today's shift via Admin
-- Adjust shift dates in DB
-- Modify seed data
+Fix:
+   node prisma/seedDemo.js
+
+This is safe to re-run - it is idempotent.
+
+
+4. "Invalid email or password" on Login
+------------------------------
+Means the user accounts haven't been created yet.
+
+Fix:
+   npm run seed
+
+
+5. Live Site is Slow on First Request
+------------------------------
+Normal. Render free-tier web service sleeps after ~15 min idle.
+First request wakes it (~30s). Subsequent requests are fast.
 
 
 ==================================================
@@ -304,13 +324,13 @@ NOTES
 ==================================================
 
 If backend port changes from 5000:
-- Update frontend .env
-- Restart frontend server
+- Update VITE_API_BASE_URL in client/.env
+- Restart the frontend dev server
 
 If .env values change:
-- Restart related servers
+- Restart the affected server
 
-Recommended startup order:
-1. MySQL
-2. Backend
-3. Frontend
+Recommended local startup order:
+1. PostgreSQL (only if using a local install)
+2. Backend  (npm run dev in server/)
+3. Frontend (npm run dev in client/)
