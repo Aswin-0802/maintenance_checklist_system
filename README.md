@@ -2,12 +2,21 @@
 
 Role-based full-stack application to manage shift-based maintenance and cleaning checklist operations for station/facility environments.
 
+## Live Demo
+
+- Frontend (Vercel): https://maintenance-checklist-system.vercel.app
+- Backend API (Render): https://maintenance-checklist-api.onrender.com/api
+- Swagger docs: https://maintenance-checklist-api.onrender.com/api-docs
+
+> The backend is on Render's free tier — the first request after ~15 min of inactivity takes ~30 s to wake up.
+
 ## Tech Stack
 
 - Frontend: React + Vite
 - Backend: Node.js + Express
-- Database: MySQL + Prisma ORM
+- Database: PostgreSQL + Prisma ORM
 - Authentication: JWT (Bearer token)
+- Hosting: Vercel (frontend) + Render (backend + Postgres)
 
 ## Modules Implemented
 
@@ -55,10 +64,10 @@ Create `.env` from template:
 cp .env.example .env
 ```
 
-Set local DB URL (XAMPP default no-password root example):
+Set the Postgres connection string (you can paste the External URL from your Render Postgres dashboard, or use a local Postgres instance):
 
 ```env
-DATABASE_URL="mysql://root:@localhost:3306/maintenance_checklist"
+DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/DBNAME"
 ```
 
 Then run:
@@ -66,10 +75,16 @@ Then run:
 ```bash
 npm install
 npx prisma generate
-npx prisma migrate dev --name init
+npx prisma migrate deploy
 npm run seed
+node prisma/seedDemo.js
 npm run dev
 ```
+
+What each seed does:
+
+- `npm run seed` — creates the three login users (admin / staff / supervisor)
+- `node prisma/seedDemo.js` — creates today's stations, shifts, templates, assignments, and a couple of sample submissions so the dashboards have real data
 
 Backend URLs:
 
@@ -128,18 +143,18 @@ Relationships:
 - Submission has many submission items
 - Users are mapped by role and assignment type
 
+## Deployment
+
+Full step-by-step deploy guide is in [DEPLOY.md](DEPLOY.md). Quick summary:
+
+- Frontend → **Vercel**, Root Directory `client`, env var `VITE_API_BASE_URL`
+- Backend → **Render** Web Service, Root Directory `server`, Build `npm install && npm run build`, Start `npm run start`
+- Database → **Render PostgreSQL** (free tier)
+- The `build` script on Render automatically runs `prisma migrate deploy` and both seed scripts on every deploy, so the database is always provisioned and populated.
+
 ## Current Completion
 
 - Phase 1: completed
 - Phase 2: completed
 - Phase 3: completed (backend + frontend dashboards)
-- Phase 4: in progress (deployment + demo assets + optional final polish)
-
-## Suggested Final Submission Additions
-
-- Demo video (1-2 min) or 6-8 screenshots
-- Public Postman collection export (optional if Swagger link provided)
-- Deployment links:
-  - Frontend (Vercel/Netlify)
-  - Backend (Render/Railway)
-  - MySQL host (Railway/PlanetScale depending on free tier availability)
+- Phase 4: completed (deployed to Vercel + Render)
